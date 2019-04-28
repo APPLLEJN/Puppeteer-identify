@@ -91,15 +91,15 @@ const toRightPage = async (page) => {
   * */  
  async function tryValidation(distance) {
   //将距离拆分成两段，模拟正常人的行为
-  const distance1 = distance - 10
-  const distance2 = 10
+  const distance1 = distance - 5
+  const distance2 = 5
 
   page.mouse.click(btn_position.btn_left,btn_position.btn_top,{delay:2000})
   page.mouse.down(btn_position.btn_left,btn_position.btn_top)
   page.mouse.move(btn_position.btn_left+distance1,btn_position.btn_top,{steps:30})
   await page.waitFor(1000)
-  page.mouse.move(btn_position.btn_left+distance1+distance2,btn_position.btn_top,{steps:20})
-  await page.waitFor(1000)
+  // page.mouse.move(btn_position.btn_left+distance1+distance2,btn_position.btn_top,{steps:20})
+  // await page.waitFor(1000)
   page.mouse.up()
   await page.waitFor(1000)
   
@@ -110,7 +110,7 @@ const toRightPage = async (page) => {
   await page.waitFor(1000)
   // 判断是否需要重新计算距离
   const reDistance = await page.evaluate(() => {
-    return document.querySelector('.geetest_result_content') && document.querySelector('.geetest_result_content').innerHTML
+    return document.querySelector('.geetest_result_title') && document.querySelector('.geetest_result_title').innerHTML
   })
   await page.waitFor(1000)
   return {isSuccess:isSuccess==='验证成功',reDistance:reDistance.includes('怪物吃了拼图')}
@@ -127,8 +127,8 @@ const toRightPage = async (page) => {
     // 比较像素,找到缺口的大概位置
     function compare(document) {
       const ctx1 = document.querySelector('.geetest_canvas_fullbg'); // 完成图片
-      const ctx2 = document.querySelector('.geetest_canvas_slice');  // 带缺口图片
-      const pixelDifference = 30; // 像素差
+      const ctx2 = document.querySelector('.geetest_canvas_bg');  // 带缺口图片
+      const pixelDifference = 40; // 像素差
       let res = []; // 保存像素差较大的x坐标
 
       // 对比像素
@@ -147,15 +147,12 @@ const toRightPage = async (page) => {
           const res1=Math.abs(data1[0]-data2[0]);
           const res2=Math.abs(data1[1]-data2[1]);
           const res3=Math.abs(data1[2]-data2[2]);
-              if(!(res1 < pixelDifference && res2 < pixelDifference && res3 < pixelDifference)) {
-                if(!res.includes(i)) {
-                  res.push(i);
-                }
+              if(res1 > pixelDifference && res2 > pixelDifference && res3 > pixelDifference) {
+                if(!res.includes(i)) res.push(i);
               }  
         }
       }
-      // 返回像素差最大值跟最小值，经过调试最小值往左小7像素，最大值往左54像素
-      return {min:res[0]-7,max:res[res.length-1]-54}
+      return {min:res[0],max:res[res.length-1]}
     }
     return compare(document)
   })
